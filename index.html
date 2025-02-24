@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cross Shaped Poem</title>
+    <style>
+        /* Import PT Serif font from Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=PT+Serif&display=swap');
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+            font-family: 'PT Serif', serif;  /* Use PT Serif as the font */
+            text-align: center;
+            position: relative;
+        }
+        .container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+        }
+        .vertical, .horizontal {
+            position: absolute;
+            background: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+            transition: z-index 0.3s ease-in-out, background-image 0.3s ease-in-out;
+        }
+        .horizontal {
+            flex-direction: column;
+            width: 60vw;
+            height: 12vh;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+        .vertical {
+            flex-direction: row;
+            width: 12vw;
+            height: 60vh;
+            writing-mode: vertical-rl;
+            text-align: center;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+        .poem-text {
+            font-size: 4vw;
+            font-weight: bold;
+            padding: 20px;
+            word-wrap: break-word;
+            text-align: center;
+            color: black;  /* Default text color to black */
+            transition: font-size 0.3s ease-in-out;
+        }
+        .focused {
+            z-index: 2;
+        }
+        .image {
+            position: absolute;
+            opacity: 0.3;  /* Lower opacity */
+            transition: opacity 0.5s ease-in-out;
+        }
+        .poem.hovered .image {
+            opacity: 1;
+        }
+
+        /* Make sure the text size doesn't exceed the container */
+        .horizontal .poem-text, .vertical .poem-text {
+            max-width: 90%;
+            max-height: 90%;
+            overflow-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="horizontal poem" id="horizontal-poem"></div>
+        <div class="vertical poem" id="vertical-poem"></div>
+    </div>
+
+    <script>
+        const verticalPoem = [
+            "Our Father, Who art in heaven,",
+            "Hallowed be Thy Name.",
+            "Thy Kingdom come.",
+            "Thy Will be done,",
+            "on earth as it is in Heaven.",
+            "Give us this day our daily bread.",
+            "And forgive us our trespasses,",
+            "as we forgive those who trespass against us.",
+            "And lead us not into temptation,",
+            "but deliver us from evil. Amen."
+        ];
+
+        const horizontalPoem = [
+            "Droplets from my palms,",
+            "And I wipe them into my back pockets,",
+            "Onto my shirt,",
+            "And onto my handkerchief.",
+            "It rolls off my head,",
+            "And down my shoulders,",
+            "Peers wipe their hands on their pants,",
+            "As if to pass a quiet judgment,",
+            "And I collide back into the wooden pew,",
+            "From a moment that feels like forever."
+        ];
+
+        const verticalImages = ['church1.jpg', 'church2.jpg', 'church3.jpg'];
+        const horizontalImages = ['pew1.jpg', 'pew2.jpg', 'pew3.jpg'];
+
+        let verticalIndex = 0;
+        let horizontalIndex = 0;
+
+        function updatePoem() {
+            document.getElementById("horizontal-poem").innerHTML = `<div class='poem-text'>${horizontalPoem[horizontalIndex % horizontalPoem.length]}</div>`;
+            document.getElementById("vertical-poem").innerHTML = `<div class='poem-text'>${verticalPoem[verticalIndex % verticalPoem.length]}</div>`;
+
+            verticalIndex++;
+            horizontalIndex++;
+            adjustTextSize();  // Adjust text size whenever the poem updates
+        }
+
+        function adjustTextSize() {
+            // Get the poem elements
+            const horizontalPoemElement = document.getElementById('horizontal-poem');
+            const verticalPoemElement = document.getElementById('vertical-poem');
+
+            // Adjust font size to fit in the container
+            adjustFontSizeToFit(horizontalPoemElement);
+            adjustFontSizeToFit(verticalPoemElement);
+        }
+
+        function adjustFontSizeToFit(poemElement) {
+            const poemText = poemElement.querySelector('.poem-text');
+            const poemWidth = poemElement.offsetWidth;
+            const poemHeight = poemElement.offsetHeight;
+
+            // Get a starting font size
+            let fontSize = 4; // starting in vw for responsive size
+            poemText.style.fontSize = fontSize + 'vw';
+
+            // Decrease the font size until the text fits within the container
+            while (poemText.offsetWidth > poemWidth * 0.9 || poemText.offsetHeight > poemHeight * 0.9) {
+                fontSize -= 0.5;
+                poemText.style.fontSize = fontSize + 'vw';
+            }
+        }
+
+        function generateRandomImage(poemElement, imageSet) {
+            let randomImage = imageSet[Math.floor(Math.random() * imageSet.length)];
+            let imageElement = document.createElement('img');
+            imageElement.src = randomImage;
+            imageElement.classList.add('image');
+
+            imageElement.onload = function() {
+                // Calculate aspect ratio
+                const aspectRatio = imageElement.naturalWidth / imageElement.naturalHeight;
+
+                // Set random size and maintain aspect ratio
+                let randomWidth = 150 + Math.random() * 250;  // Random width between 150px and 400px
+                let randomHeight = randomWidth / aspectRatio; // Calculate height based on aspect ratio
+
+                // Adjust random position calculation
+                let randomLeft = Math.random() * (window.innerWidth - randomWidth);  // Add buffer
+                let randomTop = Math.random() * (window.innerHeight - randomHeight); // Add buffer
+
+                imageElement.style.left = `${randomLeft}px`;
+                imageElement.style.top = `${randomTop}px`;
+                imageElement.style.width = `${randomWidth}px`;
+                imageElement.style.height = `${randomHeight}px`;
+
+                // Append the image to the body
+                document.body.appendChild(imageElement);
+            };
+        }
+
+        // Initialize and update poems
+        updatePoem();
+        setInterval(updatePoem, 4000);
+
+        // Hover and click behavior
+        document.querySelectorAll('.poem').forEach(poem => {
+            let imageSet = poem.id === 'vertical-poem' ? verticalImages : horizontalImages;
+
+            poem.addEventListener('mouseenter', function() {
+                this.classList.add('hovered');
+                // Generate a random image behind the poem
+                generateRandomImage(this, imageSet);
+            });
+
+            poem.addEventListener('mouseleave', function() {
+                this.classList.remove('hovered');
+            });
+
+            poem.addEventListener('click', function() {
+                document.querySelectorAll('.poem').forEach(p => p.classList.remove('focused'));
+                this.classList.add('focused');
+            });
+        });
+    </script>
+</body>
+</html>
